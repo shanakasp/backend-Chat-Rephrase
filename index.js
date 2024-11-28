@@ -145,5 +145,5 @@ module.exports = MessageApp;
 // Main startup file (e.g., index.js)
 if (require.main === module) {
   const app = new MessageApp(process.env.OPENAI_API_KEY);
-  app.start(3000);
+  app.start(5000);
 }
