@@ -1,6 +1,7 @@
 const express = require("express");
 const bodyParser = require("body-parser");
 const OpenAI = require("openai");
+const cors = require("cors"); // Import cors
 require("dotenv").config(); // Load environment variables
 
 class MessageService {
@@ -58,6 +59,14 @@ class MessageApp {
     this.messageService = new MessageService(openaiApiKey);
 
     this.app.use(bodyParser.json());
+    this.app.use(
+      cors({
+        origin: "http://localhost:5173", // Allow requests from your React app
+        methods: ["GET", "POST"], // Allow specific HTTP methods
+        allowedHeaders: ["Content-Type"], // Allow specific headers
+      })
+    );
+
     this.conversations = {};
     this.setupRoutes();
   }
@@ -124,7 +133,7 @@ class MessageApp {
     });
   }
 
-  start(port = 3000) {
+  start(port = 5000) {
     this.app.listen(port, () => {
       console.log(`Server running on port ${port}`);
     });
