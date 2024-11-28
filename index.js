@@ -1,40 +1,26 @@
 const express = require("express");
 const bodyParser = require("body-parser");
 const OpenAI = require("openai");
-const cors = require("cors"); // Import cors
-require("dotenv").config(); // Load environment variables
+const cors = require("cors");
+require("dotenv").config();
 
 class MessageService {
   constructor(apiKey) {
     this.openai = new OpenAI({ apiKey: apiKey });
   }
 
-  async rephraseMessage(originalMessage, category) {
-    const categoryPrompts = {
-      positive:
-        "Rephrase the message to be encouraging, optimistic, and uplifting. Focus on highlighting strengths and potential.",
-      supportive:
-        "Rephrase the message to show empathy, understanding, and emotional support. Use caring and compassionate language.",
-      collaborative:
-        "Rephrase the message to emphasize teamwork, mutual understanding, and collective problem-solving. Use inclusive language.",
-      "problem-solving":
-        "Rephrase the message to be constructive, solution-oriented, and focused on addressing challenges systematically and objectively.",
-    };
-
+  async rephraseMessage(originalMessage, categoryPrompt) {
     try {
       const response = await this.openai.chat.completions.create({
         model: "gpt-3.5-turbo",
         messages: [
           {
             role: "system",
-            content: `You are a professional communication assistant. ${
-              categoryPrompts[category] || categoryPrompts["collaborative"]
-            } 
-            Ensure the rephrased message:
-            - Maintains the original intent
-            - Uses professional and respectful language
-            - Avoids harsh or negative tone
-            - Focuses on constructive communication`,
+            content: `You are a professional communication assistant. ${categoryPrompt}
+                      Please rephrase the following message without changing the intent or meaning:
+                      - Maintain a professional, polite, and respectful tone.
+                      - Avoid harsh or negative language.
+                      - Focus on constructive communication.`,
           },
           {
             role: "user",
@@ -45,10 +31,11 @@ class MessageService {
         temperature: 0.7,
       });
 
+      // Ensure only the rephrased message is returned
       return response.choices[0].message.content.trim();
     } catch (error) {
       console.error("Error rephrasing message:", error);
-      return originalMessage;
+      return originalMessage; // Return original message if something goes wrong
     }
   }
 }
@@ -73,23 +60,20 @@ class MessageApp {
 
   setupRoutes() {
     this.app.post("/send-message", async (req, res) => {
-      const {
-        sender,
-        recipient,
-        message,
-        category = "collaborative",
-      } = req.body;
+      const { sender, recipient, message, categoryPrompt } = req.body;
 
       if (!sender || !recipient || !message) {
         return res.status(400).json({ error: "Missing required fields" });
       }
 
       try {
+        // Call the rephrasing method
         const phrasedMessage = await this.messageService.rephraseMessage(
           message,
-          category
+          categoryPrompt
         );
 
+        // Save the conversation (if needed)
         if (!this.conversations[sender]) {
           this.conversations[sender] = {};
         }
@@ -99,18 +83,21 @@ class MessageApp {
 
         const messageEntry = {
           sender,
-          message: phrasedMessage,
+          message: phrasedMessage, // The rephrased message
           originalMessage: message,
-          category,
+          categoryPrompt,
           timestamp: new Date(),
         };
 
         this.conversations[sender][recipient].push(messageEntry);
 
+        // Return the rephrased message along with other details
         res.status(200).json({
-          message: "Message sent successfully",
-          phrasedMessage,
-          category,
+          sender,
+          recipient,
+          message: phrasedMessage, // Return the rephrased message
+          originalMessage: message,
+          categoryPrompt,
         });
       } catch (error) {
         res.status(500).json({ error: "Failed to send message" });
