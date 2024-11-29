@@ -3,6 +3,9 @@ const bodyParser = require("body-parser");
 const OpenAI = require("openai");
 const cors = require("cors");
 require("dotenv").config();
+const { spawn } = require("child_process");
+const path = require("path");
+const fs = require("fs");
 
 class MessageService {
   constructor(apiKey) {
@@ -118,9 +121,35 @@ class MessageApp {
 
       res.status(200).json(conversation);
     });
+
+    this.app.post("/restart", (req, res) => {
+      try {
+        // Path to the main index.js file
+        const indexPath = path.join(__dirname, "index.js");
+
+        // Get current timestamp
+        const timestamp = new Date().toISOString();
+
+        // Update file timestamp to trigger Nodemon restart
+        fs.utimesSync(indexPath, new Date(), new Date());
+
+        console.log("Restart requested. Nodemon will handle restart.");
+
+        res.status(200).json({
+          message: "Restart initiated",
+          timestamp: timestamp,
+        });
+      } catch (error) {
+        console.error("Restart failed:", error);
+        res.status(500).json({
+          error: "Restart failed",
+          details: error.message,
+        });
+      }
+    });
   }
 
-  start(port = 5000) {
+  start(port = 4000) {
     this.app.listen(port, () => {
       console.log(`Server running on port ${port}`);
     });
@@ -132,5 +161,5 @@ module.exports = MessageApp;
 // Main startup file (e.g., index.js)
 if (require.main === module) {
   const app = new MessageApp(process.env.OPENAI_API_KEY);
-  app.start(5000);
+  app.start(4000);
 }
