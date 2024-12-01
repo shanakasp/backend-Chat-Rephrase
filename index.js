@@ -15,7 +15,7 @@ class MessageService {
   async rephraseMessage(originalMessage, categoryPrompt) {
     try {
       const response = await this.openai.chat.completions.create({
-        model: "gpt-3.5-turbo",
+        model: "gpt-4", // Changed from gpt-3.5-turbo to gpt-4
         messages: [
           {
             role: "system",
@@ -30,7 +30,7 @@ class MessageService {
             content: originalMessage,
           },
         ],
-        max_tokens: 200,
+        max_tokens: 400,
         temperature: 0.7,
       });
 
