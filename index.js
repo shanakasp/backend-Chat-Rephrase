@@ -19,11 +19,7 @@ class MessageService {
         messages: [
           {
             role: "system",
-            content: `You are a professional communication assistant. ${categoryPrompt}
-                      Please rephrase the following message without changing the intent or meaning:
-                      - Maintain a professional, polite, and respectful tone.
-                      - Avoid harsh or negative language.
-                      - Focus on constructive communication.`,
+            content: `${categoryPrompt}`,
           },
           {
             role: "user",
