@@ -47,7 +47,7 @@ class MessageApp {
     this.app.use(bodyParser.json());
     this.app.use(
       cors({
-        origin: "https://jovial-semolina-6bb8cb.netlify.app", // Allow requests from your React app
+        origin: "https://princepromptcheck.netlify.app", // Allow requests from your React app
         methods: ["GET", "POST"], // Allow specific HTTP methods
         allowedHeaders: ["Content-Type"], // Allow specific headers
       })
